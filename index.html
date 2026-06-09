@@ -1,0 +1,327 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SK Creations | Premium Creative Hub Sri Lanka</title>
+    <meta name="description" content="SK Creations - Premium hub for high-quality Resin Art, Custom T-shirt Printing, and Professional Digital Branding in Sri Lanka.">
+    <meta name="keywords" content="SK Creations, ශාN, Resin Art Sri Lanka, Custom T-shirts, SK Phoenix">
+    <meta name="author" content="T. Shalitha Kaushalya Peiris">
+
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+
+    <style>
+        :root { --gold: #D4AF37; --wa: #25D366; --fb: #1877F2; }
+        body { margin: 0; font-family: 'Montserrat', sans-serif; background: #000; color: #fff; scroll-behavior: smooth; overflow-x: hidden; }
+        .page-background { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background-image: linear-gradient(rgba(0,0,0,0.85), rgba(0,0,0,0.85)), url('https://i.ibb.co/FLDJ9Q2b/black-gold-background-with-gold-black-white-gold-swirls-1025753-145242.avif'); background-size: cover; background-position: center; background-attachment: fixed; z-index: -2; }
+        
+        header { padding: 10px 50px; display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.95); backdrop-filter: blur(10px); position: fixed; width: 100%; top: 0; z-index: 1000; border-bottom: 1px solid rgba(212, 175, 55, 0.2); box-sizing: border-box; }
+        .nav-logo { height: 60px; clip-path: circle(48%); mix-blend-mode: screen; cursor: pointer; }
+        
+        .search-container { position: relative; margin: 0 20px; flex-grow: 1; max-width: 400px; }
+        .search-bar { width: 100%; padding: 10px 20px; border-radius: 30px; border: 1px solid rgba(212, 175, 55, 0.4); background: rgba(0,0,0,0.6); color: #fff; font-size: 13px; outline: none; }
+
+        nav { display: flex; align-items: center; }
+        nav a { color: #fff; text-decoration: none; margin-left: 20px; font-size: 11px; font-weight: bold; text-transform: uppercase; letter-spacing: 2px; }
+        
+        .header-upload-btn { display: none; background: var(--gold); color: #000; border: none; padding: 8px 15px; border-radius: 20px; font-weight: bold; font-size: 12px; margin-left: 20px; cursor: pointer; transition: 0.3s; }
+
+        .hero { height: 100vh; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; }
+        .hero-logo { width: clamp(250px, 50vw, 420px); margin-bottom: 25px; clip-path: circle(48%); mix-blend-mode: screen; filter: drop-shadow(0 0 30px rgba(212, 175, 55, 0.6)); }
+        .hero h1 { font-size: clamp(28px, 8vw, 55px); font-weight: 900; letter-spacing: 12px; text-transform: uppercase; margin: 0; }
+
+        section { padding: 100px 20px; }
+        .section-title { text-align: center; color: var(--gold); font-size: 32px; font-weight: 900; text-transform: uppercase; letter-spacing: 6px; margin-bottom: 30px; }
+        
+        .reels-tabs { display: flex; justify-content: center; gap: 15px; margin-bottom: 50px; width: 100%; flex-wrap: wrap; }
+        .tab-btn { background: transparent; border: 2px solid var(--gold); color: var(--gold); padding: 12px 30px; border-radius: 50px; cursor: pointer; font-weight: 900; text-transform: uppercase; font-size: 11px; letter-spacing: 2px; transition: 0.3s; }
+        .tab-btn.active { background: var(--gold); color: #000; box-shadow: 0 0 20px rgba(212, 175, 55, 0.4); }
+
+        .reels-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 30px; max-width: 1200px; margin: auto; }
+        .reels-card { border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 25px; overflow: hidden; height: 550px; background: #000; position: relative; }
+        video { width: 100%; height: 85%; object-fit: cover; }
+        .reels-footer { padding: 15px; text-align: center; background: #0a0a0a; border-top: 1px solid rgba(212, 175, 55, 0.1); }
+        .reels-footer h4 { margin: 0; font-size: 13px; color: var(--gold); text-transform: uppercase; }
+
+        /* Floating Panel Buttons */
+        .social-float { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 9999; }
+        .float-btn { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.3s; cursor: pointer; text-decoration: none; position: relative; }
+        .cart-btn { background: linear-gradient(45deg, #B8860B, #D4AF37); color: #000; }
+        .wa-btn { background: var(--wa); } .fb-btn { background: var(--fb); }
+        .float-btn:hover { transform: scale(1.1); }
+        .float-cart-badge { position: absolute; top: -5px; right: -5px; background: #ff4444; color: white; font-size: 11px; font-weight: 900; padding: 2px 7px; border-radius: 50%; }
+
+        .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; max-width: 1200px; margin: auto; }
+        .card { background: rgba(15, 15, 15, 0.9); border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 25px; overflow: hidden; position: relative; transition: 0.4s; backdrop-filter: blur(15px); }
+        .img-container { width: 100%; height: 280px; background: #000; overflow: hidden; cursor: zoom-in; }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
+        .card-body { padding: 25px; text-align: center; }
+        .price-link { cursor: pointer; color: var(--gold); font-size: 11px; text-decoration: underline; margin-bottom: 15px; display: inline-block; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; }
+        .btn { background: linear-gradient(45deg, #B8860B, #D4AF37); border: none; color: #000; padding: 15px 25px; border-radius: 50px; font-size: 11px; font-weight: 900; cursor: pointer; display: block; width: 100%; margin-top: 5px; text-transform: uppercase; }
+
+        /* 🛒 Cart Modal Popup */
+        #cart-modal { display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); background: rgba(10,10,10,0.99); border: 2px solid var(--gold); border-radius: 35px; padding: 40px 30px; width: 90%; max-width: 460px; z-index: 6000; box-shadow: 0 0 80px #000; max-height: 75vh; overflow-y: auto; }
+        .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(212,175,55,0.15); }
+        .cart-item-remove { color: #ff4444; cursor: pointer; font-weight: 900; }
+
+        /* Admin Panels Controls */
+        .admin-controls { position: absolute; top: 15px; right: 15px; z-index: 100; display: none; gap: 10px; }
+        .edit-btn { background: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 11px; font-weight: bold; }
+        .delete-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 11px; font-weight: bold; }
+
+        #admin-panel { background: rgba(10, 10, 10, 0.98); padding: 50px 40px; border: 2px solid var(--gold); border-radius: 35px; max-width: 440px; margin: 40px auto; display: none; text-align: center; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 5000; box-shadow: 0 0 100px rgba(0,0,0,1); width: 90%; }
+        .panel-close-x { position: absolute; top: 15px; right: 20px; width: 35px; height: 35px; background: rgba(255,255,255,0.1); border-radius: 50%; color: var(--gold); font-size: 20px; line-height: 35px; cursor: pointer; transition: 0.3s; font-weight: 900; text-align: center; }
+        
+        .input-field { width: 100%; padding: 14px; margin-bottom: 15px; background: #000; color: #fff; border: 1px solid rgba(212, 175, 55, 0.3); border-radius: 12px; box-sizing: border-box; }
+        #progress-container { width: 100%; background: #222; border-radius: 10px; margin-top: 15px; display: none; overflow: hidden; height: 15px; position: relative; }
+        #progress-bar { width: 0%; height: 100%; background: var(--gold); transition: width 0.3s; }
+        #progress-text { position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: 900; line-height: 15px; color: #fff; }
+
+        footer { text-align: center; padding: 60px 20px; background: rgba(0,0,0,0.9); }
+    </style>
+</head>
+<body>
+
+<div class="page-background"></div>
+<header>
+    <img src="https://i.ibb.co/XfVcwFXn/Gemini-Generated-Image-hpfbschpfbschpfb.png" class="nav-logo" onclick="window.scrollTo({top:0, behavior:'smooth'})">
+    <div class="search-container"><input type="text" id="main-search" class="search-bar" placeholder="Search products..." oninput="searchProducts()"></div>
+    <nav>
+        <a href="#reels">REELS</a><a href="#craft">Craft</a><a href="#fashion">Fashion</a><a href="#digital">Digital</a>
+        <button id="header-admin-btn" class="header-upload-btn" onclick="openAdminPanelForUpload()">+ UPLOAD</button>
+    </nav>
+</header>
+
+<section class="hero"><img src="https://i.ibb.co/XfVcwFXn/Gemini-Generated-Image-hpfbschpfbschpfb.png" class="hero-logo"><h1>SK CREATIONS</h1><p style="color:var(--gold); letter-spacing: 5px; text-transform: uppercase;">Premium Creative Hub | Est. 2024</p></section>
+
+<div class="social-float">
+    <div class="float-btn cart-btn" onclick="toggleCartModal()">
+        <i class="fas fa-shopping-basket"></i>
+        <span id="float-cart-count" class="float-cart-badge">0</span>
+    </div>
+    <a href="https://www.facebook.com/profile.php?id=61588859531336" class="float-btn fb-btn" target="_blank"><i class="fab fa-facebook-f"></i></a>
+    <a href="whatsapp://send?phone=94743853510" class="float-btn wa-btn"><i class="fab fa-whatsapp"></i></a>
+</div>
+
+<div id="cart-modal">
+    <div class="panel-close-x" onclick="toggleCartModal()">✕</div>
+    <h2 style="color: var(--gold); text-align: center; margin-bottom: 25px; letter-spacing: 2px;">YOUR CART</h2>
+    <div id="cart-items-list"></div>
+    <div style="margin-top: 25px; text-align: right; font-weight: 900; font-size: 18px; border-top: 1px dashed rgba(212,175,55,0.3); padding-top: 15px;">
+        TOTAL: <span style="color:var(--gold);">LKR <span id="cart-total-price">0</span></span>
+    </div>
+    <button class="btn" style="background: linear-gradient(45deg, #25D366, #128C7E); color: white; margin-top: 25px; font-weight: 900;" onclick="sendCartOrder()">SEND ORDER VIA WHATSAPP</button>
+</div>
+
+<div id="admin-panel">
+    <div class="panel-close-x" onclick="closeAdmin()">✕</div>
+    <h2 id="panel-title" style="color: var(--gold); margin-bottom: 25px;">ADMIN PORTAL</h2>
+    <input type="hidden" id="edit-id">
+    <select id="upload-type" class="input-field" onchange="toggleForm()"><option value="photo">Upload Product (Photo)</option><option value="video">Upload Reel (Video)</option></select>
+    <div id="photo-fields">
+        <input type="text" id="product-name" placeholder="Item Name" class="input-field">
+        <input type="text" id="product-price" placeholder="Price (LKR)" class="input-field">
+        <input type="file" id="image-file" class="input-field" accept="image/*">
+    </div>
+    <div id="video-fields" style="display:none;"><input type="text" id="video-title" placeholder="Reel Title" class="input-field"><input type="file" id="video-file" class="input-field" accept="video/*"></div>
+    <select id="category-select" class="input-field"><option value="craft">SK Craft</option><option value="fashion">SK Fashion</option><option value="digital">SK Digital</option></select>
+    <div id="progress-container"><div id="progress-bar"></div><div id="progress-text">0%</div></div>
+    <button class="btn" id="upload-btn" onclick="handleUpload()">PUBLISH CONTENT</button>
+    <button class="btn" style="background:#222; margin-top:10px;" onclick="resetPanel()">RESET FORM</button>
+</div>
+
+<section id="reels"><div class="section-title">SK REELS</div><div class="reels-tabs"><button class="tab-btn active" onclick="filterReels('craft', this)">Craft</button><button class="tab-btn" onclick="filterReels('fashion', this)">Fashion</button><button class="tab-btn" onclick="filterReels('digital', this)">Digital</button></div><div id="reels-display-grid" class="reels-grid"></div></section>
+<section id="craft"><div class="section-title">SK Craft</div><div class="grid" id="craft-grid"></div></section>
+<section id="fashion"><div class="section-title">SK Fashion</div><div class="grid" id="fashion-grid"></div></section>
+<section id="digital"><div class="section-title">SK Digital</div><div class="grid" id="digital-grid"></div></section>
+
+<footer><p style="font-size: 11px; color: #444; cursor: pointer; letter-spacing: 2px;" onclick="toggleAdmin()">© 2026 SK CREATIONS SRI LANKA</p></footer>
+
+<script>
+    const firebaseConfig = { apiKey: "AIzaSyBi_hkXGrJJa6WFZJqB6kYOZJAx_AjdZRY", authDomain: "sk-creations-final.firebaseapp.com", databaseURL: "https://sk-creations-final-default-rtdb.europe-west1.firebasedatabase.app", projectId: "sk-creations-final", storageBucket: "sk-creations-final.firebasestorage.app", messagingSenderId: "945256356922", appId: "1:945256356922:web:71bcf49ea1b229bc37e903" };
+    firebase.initializeApp(firebaseConfig);
+    const database = firebase.database();
+    
+    let dbContent = {};
+    let activeReelCat = 'craft';
+    let isUserAdmin = false;
+    let userCart = [];
+
+    database.ref('products').on('value', (snapshot) => {
+        dbContent = snapshot.val() || {};
+        renderAll();
+    });
+
+    function renderAll() {
+        searchProducts();
+        filterReels(activeReelCat, document.querySelector('.tab-btn.active'));
+    }
+
+    function searchProducts() {
+        const query = document.getElementById('main-search').value.toLowerCase();
+        document.querySelectorAll('.grid').forEach(g => g.innerHTML = '');
+        
+        Object.keys(dbContent).forEach(id => {
+            const data = dbContent[id];
+            if((!data.type || data.type === 'photo') && (data.name.toLowerCase().includes(query))) {
+                let cat = data.category ? data.category.toLowerCase().replace('sk ', '') : 'craft';
+                const grid = document.getElementById(`${cat}-grid`);
+                if(grid) {
+                    grid.insertAdjacentHTML('beforeend', `
+                        <div class="card">
+                            <div class="admin-controls" id="controls-${id}" style="display:${isUserAdmin?'flex':'none'}">
+                                <button class="edit-btn" style="display:block" onclick="startEdit('${id}')">EDIT</button>
+                                <button class="delete-btn" style="display:block" onclick="if(confirm('Delete?')) database.ref('products').child('${id}').remove()">✕</button>
+                            </div>
+                            <div class="img-container" onclick="viewFullImage('${data.url}')"><img src="${data.url}"></div>
+                            <div class="card-body">
+                                <h3>${data.name}</h3>
+                                <span class="price-link" onclick="Swal.fire({title:'Price Info', text:'LKR ${data.price}', background:'#111', color:'#fff', confirmButtonColor:'#D4AF37'})">VIEW PRICE</span>
+                                <button class="btn" onclick="addToCart('${id}')">ADD TO CART</button>
+                            </div>
+                        </div>`);
+                }
+            }
+        });
+        updateCartUI();
+    }
+
+    function filterReels(cat, btn) {
+        activeReelCat = cat;
+        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        if(btn) btn.classList.add('active');
+        const grid = document.getElementById('reels-display-grid');
+        grid.innerHTML = '';
+        Object.keys(dbContent).forEach(id => {
+            const d = dbContent[id];
+            let rCat = d.category ? d.category.toLowerCase().replace('sk ', '') : 'craft';
+            if(d.type === 'video' && rCat === cat) {
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="reels-card">
+                        <div class="admin-controls" id="controls-reel-${id}" style="display:${isUserAdmin?'flex':'none'}">
+                            <button class="delete-btn" style="display:block" onclick="if(confirm('Delete?')) database.ref('products').child('${id}').remove()">✕</button>
+                        </div>
+                        <video src="${d.url}" controls loop></video>
+                        <div class="reels-footer"><h4>${d.name || 'SK Reel'}</h4></div>
+                    </div>`);
+            }
+        });
+    }
+
+    function addToCart(id) {
+        const item = dbContent[id];
+        userCart.push({ id, name: item.name, price: String(item.price) });
+        updateCartUI();
+        Swal.fire({ title: 'Added to Cart!', text: `${item.name} is in your tray.`, icon: 'success', toast: true, position: 'top-end', showConfirmButton: false, timer: 1500 });
+    }
+
+    function updateCartUI() {
+        document.getElementById('float-cart-count').innerText = userCart.length;
+        const listContainer = document.getElementById('cart-items-list');
+        listContainer.innerHTML = '';
+        let total = 0;
+        
+        if(userCart.length === 0) {
+            listContainer.innerHTML = '<p style="text-align:center; color:#555; padding:20px 0;">Your shopping tray is empty.</p>';
+        } else {
+            userCart.forEach((item, index) => {
+                // 🚨 මචං මෙතන මිල ක්ලීන් කරන ලොජික් එක 100%ක් සරල කරලා ශක්තිමත් කළා
+                let numMatch = item.price.match(/\d+/g);
+                let cleanPrice = numMatch ? parseFloat(numMatch.join('')) : 0;
+                total += cleanPrice;
+                
+                listContainer.insertAdjacentHTML('beforeend', `
+                    <div class="cart-item">
+                        <div>
+                            <span style="font-weight:700; font-size:14px; color:#fff;">${item.name}</span><br>
+                            <span style="color:var(--gold); font-size:12px; font-weight:700;">LKR ${item.price}</span>
+                        </div>
+                        <span class="cart-item-remove" onclick="removeFromCart(${index})">✕</span>
+                    </div>`);
+            });
+        }
+        document.getElementById('cart-total-price').innerText = Math.round(total);
+    }
+
+    function removeFromCart(index) { userCart.splice(index, 1); updateCartUI(); }
+    function toggleCartModal() { const m = document.getElementById('cart-modal'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
+
+    function sendCartOrder() {
+        if(userCart.length === 0) return Swal.fire('Tray Empty', 'Add products first!', 'warning');
+        
+        let message = `🛍️ *--- NEW ORDER | SK CREATIONS ---*\n\n`;
+        message += `*Customer Request:*\n`;
+        message += `━━━━━━━━━━━━━━━━━━\n`;
+        
+        let total = 0;
+        userCart.forEach((item, index) => {
+            message += `${index + 1}️⃣ *${item.name}* - LKR ${item.price}\n`;
+            let numMatch = item.price.match(/\d+/g);
+            let cleanPrice = numMatch ? parseFloat(numMatch.join('')) : 0;
+            total += cleanPrice;
+        });
+        
+        message += `━━━━━━━━━━━━━━━━━━\n`;
+        message += `💳 *TOTAL AMOUNT:* LKR ${Math.round(total)}\n\n`;
+        message += `*Please confirm my order. Thank you! ✨*`;
+        
+        // 🚨 මෙන්න නම්බර් එක 94743853510 ට හරියටම හැදුවා
+        window.location.href = `whatsapp://send?phone=94743853510&text=${encodeURIComponent(message)}`;
+        userCart = []; updateCartUI(); toggleCartModal();
+    }
+
+    function viewFullImage(url) { Swal.fire({ imageUrl: url, background: 'rgba(0,0,0,0.95)', showConfirmButton: false, width: 'auto' }); }
+    function toggleForm() { const t = document.getElementById('upload-type').value; document.getElementById('photo-fields').style.display = t === 'photo' ? 'block' : 'none'; document.getElementById('video-fields').style.display = t === 'video' ? 'block' : 'none'; }
+    
+    function toggleAdmin() { 
+        if(prompt("Key:") === "Shan@1994") { 
+            isUserAdmin = true; 
+            document.getElementById('header-admin-btn').style.display = 'block';
+            document.querySelectorAll('.admin-controls').forEach(ctrl => ctrl.style.display = 'flex');
+            Swal.fire('Admin Mode Active!', 'Edit & Delete buttons are now visible.', 'success');
+            renderAll();
+        } 
+    }
+    
+    function openAdminPanelForUpload() { resetPanel(); document.getElementById('admin-panel').style.display = 'block'; }
+    function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
+    function resetPanel() { document.getElementById('edit-id').value = ''; document.getElementById('panel-title').innerText = "ADMIN PORTAL"; document.querySelectorAll('.input-field').forEach(i => { if(i.type !== 'select-one') i.value = ''; }); document.getElementById('progress-container').style.display = 'none'; }
+
+    function startEdit(id) {
+        const item = dbContent[id];
+        document.getElementById('edit-id').value = id;
+        document.getElementById('panel-title').innerText = "EDIT ITEM";
+        document.getElementById('upload-type').value = item.type || "photo";
+        toggleForm();
+        if(item.type !== 'video') { document.getElementById('product-name').value = item.name; document.getElementById('product-price').value = item.price; }
+        document.getElementById('category-select').value = item.category.toLowerCase().replace('sk ', '');
+        document.getElementById('admin-panel').style.display = 'block';
+    }
+
+    async function handleUpload() {
+        const type = document.getElementById('upload-type').value;
+        const cat = document.getElementById('category-select').value;
+        const editId = document.getElementById('edit-id').value;
+        const btn = document.getElementById('upload-btn');
+        const prog = document.getElementById('progress-container');
+        const bar = document.getElementById('progress-bar');
+        btn.disabled = true; prog.style.display = 'block';
+        let finalData = { type, category: cat };
+
+        try {
+            if(type === 'photo') {
+                const f = document.getElementById('image-file').files[0];
+                if(f) {
+                    const fd = new FormData(); fd.append("image", f);
+                    const res = await fetch // ... (ImgBB Logic)
+                }
+            } // ... (Cloudinary Logic)
+        } catch(e) {}
+    }
+</script>
+</body>
+</html>

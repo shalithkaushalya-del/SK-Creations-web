@@ -50,7 +50,6 @@
         .reels-footer { padding: 15px; text-align: center; background: #0a0a0a; border-top: 1px solid rgba(212, 175, 55, 0.1); }
         .reels-footer h4 { margin: 0; font-size: 13px; color: var(--gold); text-transform: uppercase; }
 
-        /* Floating Social Panel */
         .social-float { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 9999; }
         .float-btn { width: 60px; height: 60px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; color: white; box-shadow: 0 5px 15px rgba(0,0,0,0.5); transition: 0.3s; cursor: pointer; text-decoration: none; position: relative; }
         .cart-btn { background: linear-gradient(45deg, #B8860B, #D4AF37); color: #000; }
@@ -61,7 +60,7 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; max-width: 1200px; margin: auto; }
         .card { background: rgba(15, 15, 15, 0.9); border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 25px; overflow: hidden; position: relative; transition: 0.4s; backdrop-filter: blur(15px); }
         .img-container { width: 100%; height: 280px; background: #000; overflow: hidden; cursor: zoom-in; }
-        .card img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
+        .card img { width: 100%; height: 100%; object-fit: cover; }
         .card-body { padding: 25px; text-align: center; }
         .price-link { cursor: pointer; color: var(--gold); font-size: 11px; text-decoration: underline; margin-bottom: 15px; display: inline-block; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; }
         .btn { background: linear-gradient(45deg, #B8860B, #D4AF37); border: none; color: #000; padding: 15px 25px; border-radius: 50px; font-size: 11px; font-weight: 900; cursor: pointer; display: block; width: 100%; margin-top: 5px; text-transform: uppercase; }
@@ -71,13 +70,11 @@
         .cart-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid rgba(212,175,55,0.15); }
         .cart-item-remove { color: #ff4444; cursor: pointer; font-weight: 900; margin-left: 15px; font-size: 18px; }
         
-        /* 🚨 Quantity Buttons CSS */
         .qty-controls { display: flex; align-items: center; gap: 8px; }
         .qty-btn { background: transparent; color: var(--gold); border: 1px solid var(--gold); border-radius: 6px; width: 28px; height: 28px; display: flex; justify-content: center; align-items: center; cursor: pointer; font-weight: bold; transition: 0.3s; }
         .qty-btn:hover { background: var(--gold); color: #000; }
         .qty-display { font-weight: bold; font-size: 14px; width: 20px; text-align: center; }
 
-        /* Admin Controls */
         .admin-controls { position: absolute; top: 15px; right: 15px; z-index: 100; display: none; gap: 10px; }
         .edit-btn { background: #007bff; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 11px; font-weight: bold; }
         .delete-btn { background: #dc3545; color: white; border: none; padding: 8px 15px; border-radius: 20px; cursor: pointer; font-size: 11px; font-weight: bold; }
@@ -107,7 +104,6 @@
 
 <section class="hero"><img src="https://i.ibb.co/XfVcwFXn/Gemini-Generated-Image-hpfbschpfbschpfb.png" class="hero-logo"><h1>SK CREATIONS</h1><p style="color:var(--gold); letter-spacing: 5px; text-transform: uppercase;">Premium Creative Hub | Est. 2024</p></section>
 
-<!-- Floating Panel Tray -->
 <div class="social-float">
     <div class="float-btn cart-btn" onclick="toggleCartModal()">
         <i class="fas fa-shopping-basket"></i>
@@ -117,7 +113,6 @@
     <a href="whatsapp://send?phone=94743853510" class="float-btn wa-btn"><i class="fab fa-whatsapp"></i></a>
 </div>
 
-<!-- 🛒 Basket Modal Window -->
 <div id="cart-modal">
     <div class="panel-close-x" onclick="toggleCartModal()">✕</div>
     <h2 style="color: var(--gold); text-align: center; margin-bottom: 25px; letter-spacing: 2px;">YOUR CART</h2>
@@ -128,7 +123,6 @@
     <button class="btn" style="background: linear-gradient(45deg, #25D366, #128C7E); color: white; margin-top: 25px; font-weight: 900;" onclick="sendCartOrder()">SEND ORDER VIA WHATSAPP</button>
 </div>
 
-<!-- Admin Portal Container -->
 <div id="admin-panel">
     <div class="panel-close-x" onclick="closeAdmin()">✕</div>
     <h2 id="panel-title" style="color: var(--gold); margin-bottom: 25px;">ADMIN PORTAL</h2>
@@ -173,12 +167,11 @@
         filterReels(activeReelCat, document.querySelector('.tab-btn.active'));
     }
 
-    // 🚨 මෙන්න මිල ගණන් හරියටම වෙන් කරලා ගන්න අලුත් Function එක!
+    // 🔥 මචං මෙන්න මේක තමයි සුපිරිම Price Parser එක.
+    // මේකෙන් මොන අකුර තිබ්බත් ඉලක්කම විතරක් වෙන් කරනවා කිසිම Error එකක් නැතුව!
     function parsePrice(priceStr) {
         if (!priceStr) return 0;
-        // කොමා (,) මකලා දානවා (උදා: 4,000 -> 4000)
         let str = String(priceStr).replace(/,/g, '');
-        // අකුරු සහ "Rs." වල තියෙන තිත මඟහැරලා, ඉලක්කම විතරක් ගන්නවා
         let match = str.match(/\d+(\.\d+)?/);
         return match ? parseFloat(match[0]) : 0;
     }
@@ -193,6 +186,7 @@
                 let cat = data.category ? data.category.toLowerCase().replace('sk ', '') : 'craft';
                 const grid = document.getElementById(`${cat}-grid`);
                 if(grid) {
+                    let cleanDisplayPrice = parsePrice(data.price).toLocaleString('en-US');
                     grid.insertAdjacentHTML('beforeend', `
                         <div class="card">
                             <div class="admin-controls" id="controls-${id}" style="display:${isUserAdmin?'flex':'none'}">
@@ -202,7 +196,7 @@
                             <div class="img-container" onclick="viewFullImage('${data.url}')"><img src="${data.url}"></div>
                             <div class="card-body">
                                 <h3>${data.name}</h3>
-                                <span class="price-link" onclick="Swal.fire({title:'Price Info', text:'LKR ${data.price}', background:'#111', color:'#fff', confirmButtonColor:'#D4AF37'})">VIEW PRICE</span>
+                                <span class="price-link" onclick="Swal.fire({title:'Price Info', text:'LKR ${cleanDisplayPrice}', background:'#111', color:'#fff', confirmButtonColor:'#D4AF37'})">VIEW PRICE</span>
                                 <button class="btn" onclick="addToCart('${id}')">ADD TO CART</button>
                             </div>
                         </div>`);
@@ -269,7 +263,6 @@
             listContainer.innerHTML = '<p style="text-align:center; color:#555; padding:20px 0;">Your shopping tray is empty.</p>';
         } else {
             userCart.forEach((item, index) => {
-                // 🚨 අලුත් Function එකෙන් Price එක ගන්නවා
                 let cleanPrice = parsePrice(item.price);
                 let itemTotal = cleanPrice * item.qty;
                 total += itemTotal;
@@ -278,7 +271,7 @@
                     <div class="cart-item">
                         <div style="flex-grow: 1;">
                             <span style="font-weight:700; font-size:14px; color:#fff;">${item.name}</span><br>
-                            <span style="color:var(--gold); font-size:12px; font-weight:700;">LKR ${itemTotal} <span style="color:#777; font-size:10px;">(x${item.qty})</span></span>
+                            <span style="color:var(--gold); font-size:12px; font-weight:700;">LKR ${itemTotal.toLocaleString('en-US')} <span style="color:#777; font-size:10px;">(x${item.qty})</span></span>
                         </div>
                         <div class="qty-controls">
                             <button class="qty-btn" onclick="changeQty(${index}, -1)">-</button>
@@ -289,7 +282,7 @@
                     </div>`);
             });
         }
-        document.getElementById('cart-total-price').innerText = Math.round(total);
+        document.getElementById('cart-total-price').innerText = Math.round(total).toLocaleString('en-US');
     }
 
     function removeFromCart(index) { userCart.splice(index, 1); updateCartUI(); }
@@ -304,16 +297,15 @@
         
         let total = 0;
         userCart.forEach((item, index) => {
-            // 🚨 අලුත් Function එකෙන් Price එක ගන්නවා
             let cleanPrice = parsePrice(item.price);
             let itemTotal = cleanPrice * item.qty;
             
-            message += `${index + 1}️⃣ *${item.name}* (x${item.qty}) - LKR ${itemTotal}\n`;
+            message += `${index + 1}️⃣ *${item.name}* (x${item.qty}) - LKR ${itemTotal.toLocaleString('en-US')}\n`;
             total += itemTotal;
         });
         
         message += `━━━━━━━━━━━━━━━━━━\n`;
-        message += `💳 *TOTAL AMOUNT:* LKR ${Math.round(total)}\n\n`;
+        message += `💳 *TOTAL AMOUNT:* LKR ${Math.round(total).toLocaleString('en-US')}\n\n`;
         message += `*Please confirm my order. Thank you! ✨*`;
         
         window.location.href = `whatsapp://send?phone=94743853510&text=${encodeURIComponent(message)}`;

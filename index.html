@@ -87,6 +87,18 @@
         #progress-bar { width: 0%; height: 100%; background: var(--gold); transition: width 0.3s; }
         #progress-text { position: absolute; width: 100%; text-align: center; font-size: 10px; font-weight: 900; line-height: 15px; color: #fff; }
 
+        /* 🔥 SweetAlert Input Text Fix 🔥 */
+        .swal2-input {
+            color: #ffffff !important;
+            background-color: rgba(0, 0, 0, 0.7) !important;
+            border: 1px solid #D4AF37 !important;
+            font-size: 15px !important;
+            border-radius: 10px !important;
+        }
+        .swal2-input::placeholder {
+            color: rgba(255, 255, 255, 0.5) !important;
+        }
+
         footer { text-align: center; padding: 60px 20px; background: rgba(0,0,0,0.9); }
     </style>
 </head>
@@ -287,22 +299,29 @@
     function removeFromCart(index) { userCart.splice(index, 1); updateCartUI(); }
     function toggleCartModal() { const m = document.getElementById('cart-modal'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
 
-    // 🔥 අලුත් ERP Integration Cart Order Function එක 🔥
+    // 🔥 ERP Integration Cart Order Function (Updated) 🔥
     async function sendCartOrder() {
         if(userCart.length === 0) return Swal.fire('Tray Empty', 'Add products first!', 'warning');
         
+        // 🌟 1. බටන් එක එබූ සැනින් Cart ජනෙලය වහාම වසා දමනවා
+        document.getElementById('cart-modal').style.display = 'none';
+        
         // Customer ගෙන් විස්තර ඉල්ලන Popup එක (SweetAlert2)
-        const { value: formValues } = await Swal.fire({
+        const { value: formValues, dismiss: dismissReason } = await Swal.fire({
             title: 'Complete Your Order',
             html:
-                '<input id="swal-input1" class="swal2-input" placeholder="Your Name" style="color: #111; font-weight: bold; width:80%; margin-bottom:10px;">' +
-                '<input id="swal-input2" class="swal2-input" placeholder="Phone Number (Ex: 077XXXXXXX)" style="color: #111; font-weight: bold; width:80%; margin-bottom:10px;">' +
-                '<input id="swal-input3" class="swal2-input" placeholder="Delivery Address" style="color: #111; font-weight: bold; width:80%;">',
+                '<input id="swal-input1" class="swal2-input" placeholder="Your Name" style="width:85%; margin-bottom:15px; padding:12px; outline:none;">' +
+                '<input id="swal-input2" class="swal2-input" placeholder="Phone Number (Ex: 077XXXXXXX)" style="width:85%; margin-bottom:15px; padding:12px; outline:none;">' +
+                '<input id="swal-input3" class="swal2-input" placeholder="Delivery Address" style="width:85%; padding:12px; outline:none;">',
             focusConfirm: false,
-            background: 'rgba(10,10,10,0.98)',
+            background: 'rgba(15,20,30,0.99)',
             color: '#D4AF37',
             confirmButtonText: 'SEND ORDER',
             confirmButtonColor: '#25D366',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+            cancelButtonColor: '#e74c3c',
+            showCloseButton: true, // 🌟 2. උඩ දකුණු පැත්තේ "X" Close Icon එක දාන කෑල්ල
             preConfirm: () => {
                 let n = document.getElementById('swal-input1').value;
                 let p = document.getElementById('swal-input2').value;
@@ -315,87 +334,92 @@
             }
         });
 
-        if (formValues) {
-            const [custName, phone, address] = formValues;
-
-            Swal.fire({
-                title: 'Processing...',
-                text: 'Sending your order to SK Creations...',
-                allowOutsideClick: false,
-                didOpen: () => { Swal.showLoading(); }
-            });
-
-            // 1. WhatsApp මැසේජ් එක හදනවා
-            let message = `🛍️ *--- NEW ORDER | SK CREATIONS ---*\n\n`;
-            message += `*Customer:* ${custName}\n`;
-            message += `*Phone:* ${phone}\n`;
-            message += `*Address:* ${address}\n`;
-            message += `━━━━━━━━━━━━━━━━━━\n`;
-            
-            let total = 0;
-            let orderItems = []; // ERP එකට යවන්න Array එක
-            
-            userCart.forEach((item, index) => {
-                let cleanPrice = parsePrice(item.price);
-                let itemTotal = cleanPrice * item.qty;
-                
-                message += `${index + 1}️⃣ *${item.name}* (x${item.qty}) - LKR ${itemTotal.toLocaleString('en-US')}\n`;
-                total += itemTotal;
-                
-                // ERP එකට යවන්න Item නම සහ Qty එකතු කරනවා
-                orderItems.push(`[${item.name} x ${item.qty}]`);
-            });
-            
-            message += `━━━━━━━━━━━━━━━━━━\n`;
-            message += `💳 *TOTAL AMOUNT:* LKR ${Math.round(total).toLocaleString('en-US')}\n\n`;
-            message += `*Please confirm my order. Thank you! ✨*`;
-
-            // 2. ERP එකට ඩේටා යවනවා (API Fetch)
-            const erpUrl = "https://sk-creations-erp.onrender.com/api/web-orders";
-            const orderPayload = {
-                order_no: "WEB-" + Math.floor(1000 + Math.random() * 9000), // Random Order No
-                date: new Date().toISOString().split('T')[0],
-                customer_name: custName,
-                phone: phone,
-                address: address,
-                total_amount: Math.round(total),
-                items: orderItems // Array of items
-            };
-
-            fetch(erpUrl, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(orderPayload)
-            })
-            .then(response => response.json())
-            .then(data => {
-                Swal.close();
-                if(data.success) {
-                    Swal.fire({
-                        title: 'Order Placed!',
-                        text: 'Your order has been sent to SK Creations successfully.',
-                        icon: 'success',
-                        confirmButtonColor: '#D4AF37'
-                    }).then(() => {
-                        // මෙතන තමයි වෙනස් කළේ! අලුත් ටැබ් එකක WhatsApp යන්න.
-                        let formattedPhone = "94743853510";
-                        window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`, '_blank');
-                        
-                        // Cart එක හිස් කරනවා
-                        userCart = []; 
-                        updateCartUI(); 
-                        toggleCartModal();
-                    });
-                } else {
-                    Swal.fire('Error', 'Failed to connect with SK Creations servers.', 'error');
-                }
-            })
-            .catch(error => {
-                Swal.close();
-                console.error("ERP Connection Error:", error);
-                Swal.fire('Error', 'Network error. Please try again.', 'error');
-            });
+        // 🌟 3. කස්ටමර් Cancel කරොත් හෝ "X" එකෙන් වැහුවොත් නැවත Cart එක පෙන්වනවා
+        if (!formValues) {
+            document.getElementById('cart-modal').style.display = 'block';
+            return;
         }
+
+        const [custName, phone, address] = formValues;
+
+        Swal.fire({
+            title: 'Processing...',
+            text: 'Sending your order to SK Creations...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        // WhatsApp මැසේජ් එක හදනවා
+        let message = `🛍️ *--- NEW ORDER | SK CREATIONS ---*\n\n`;
+        message += `*Customer:* ${custName}\n`;
+        message += `*Phone:* ${phone}\n`;
+        message += `*Address:* ${address}\n`;
+        message += `━━━━━━━━━━━━━━━━━━\n`;
+        
+        let total = 0;
+        let orderItems = []; // ERP එකට යවන්න Array එක
+        
+        userCart.forEach((item, index) => {
+            let cleanPrice = parsePrice(item.price);
+            let itemTotal = cleanPrice * item.qty;
+            
+            message += `${index + 1}️⃣ *${item.name}* (x${item.qty}) - LKR ${itemTotal.toLocaleString('en-US')}\n`;
+            total += itemTotal;
+            
+            // ERP එකට යවන්න Item නම සහ Qty එකතු කරනවා
+            orderItems.push(`[${item.name} x ${item.qty}]`);
+        });
+        
+        message += `━━━━━━━━━━━━━━━━━━\n`;
+        message += `💳 *TOTAL AMOUNT:* LKR ${Math.round(total).toLocaleString('en-US')}\n\n`;
+        message += `*Please confirm my order. Thank you! ✨*`;
+
+        // ERP එකට ඩේටා යවනවා (API Fetch)
+        const erpUrl = "https://sk-creations-erp.onrender.com/api/web-orders";
+        const orderPayload = {
+            order_no: "WEB-" + Math.floor(1000 + Math.random() * 9000), 
+            date: new Date().toISOString().split('T')[0],
+            customer_name: custName,
+            phone: phone,
+            address: address,
+            total_amount: Math.round(total),
+            items: orderItems 
+        };
+
+        fetch(erpUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderPayload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            Swal.close();
+            if(data.success) {
+                Swal.fire({
+                    title: 'Order Placed!',
+                    text: 'Your order has been sent to SK Creations successfully.',
+                    icon: 'success',
+                    confirmButtonColor: '#D4AF37'
+                }).then(() => {
+                    // WhatsApp එක ඕපන් කරනවා
+                    let formattedPhone = "94743853510";
+                    window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`, '_blank');
+                    
+                    // Cart එක හිස් කරනවා
+                    userCart = []; 
+                    updateCartUI(); 
+                });
+            } else {
+                Swal.fire('Error', 'Failed to connect with SK Creations servers.', 'error');
+                document.getElementById('cart-modal').style.display = 'block'; // Error ආවොත් Cart එක ආපහු දෙනවා
+            }
+        })
+        .catch(error => {
+            Swal.close();
+            console.error("ERP Connection Error:", error);
+            Swal.fire('Error', 'Network error. Please try again.', 'error');
+            document.getElementById('cart-modal').style.display = 'block';
+        });
     }
 
     function viewFullImage(url) { Swal.fire({ imageUrl: url, background: 'rgba(0,0,0,0.95)', showConfirmButton: false, width: 'auto' }); }

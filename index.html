@@ -8,6 +8,8 @@
     <meta name="keywords" content="SK Creations, ශාN, Resin Art Sri Lanka, Custom T-shirts, SK Phoenix">
     <meta name="author" content="T. Shalitha Kaushalya Peiris">
 
+    <link rel="icon" type="image/png" href="https://i.ibb.co/XfVcwFXn/Gemini-Generated-Image-hpfbschpfbschpfb.png">
+
     <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;900&display=swap" rel="stylesheet">
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -45,6 +47,7 @@
         .reels-card { border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 25px; overflow: hidden; height: 550px; background: #000; position: relative; }
         video { width: 100%; height: 85%; object-fit: cover; }
         .reels-footer { padding: 15px; text-align: center; background: #0a0a0a; border-top: 1px solid rgba(212, 175, 55, 0.1); }
+        .reels-footer h4 { margin: 0; font-size: 13px; color: var(--gold); text-transform: uppercase; }
 
         /* Floating Panel Buttons */
         .social-float { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 9999; }
@@ -57,7 +60,7 @@
         .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 40px; max-width: 1200px; margin: auto; }
         .card { background: rgba(15, 15, 15, 0.9); border: 1px solid rgba(212, 175, 55, 0.15); border-radius: 25px; overflow: hidden; position: relative; transition: 0.4s; backdrop-filter: blur(15px); }
         .img-container { width: 100%; height: 280px; background: #000; overflow: hidden; cursor: zoom-in; }
-        .card img { width: 100%; height: 100%; object-fit: cover; }
+        .card img { width: 100%; height: 100%; object-fit: cover; transition: 0.5s; }
         .card-body { padding: 25px; text-align: center; }
         .price-link { cursor: pointer; color: var(--gold); font-size: 11px; text-decoration: underline; margin-bottom: 15px; display: inline-block; letter-spacing: 2px; text-transform: uppercase; font-weight: bold; }
         .btn { background: linear-gradient(45deg, #B8860B, #D4AF37); border: none; color: #000; padding: 15px 25px; border-radius: 50px; font-size: 11px; font-weight: 900; cursor: pointer; display: block; width: 100%; margin-top: 5px; text-transform: uppercase; }
@@ -228,7 +231,8 @@
             listContainer.innerHTML = '<p style="text-align:center; color:#555; padding:20px 0;">Your shopping tray is empty.</p>';
         } else {
             userCart.forEach((item, index) => {
-                let cleanPrice = parseFloat(item.price.replace(/[^\d.]/g, '')) || 0;
+                let numMatch = item.price.match(/\d+/g);
+                let cleanPrice = numMatch ? parseFloat(numMatch.join('')) : 0;
                 total += cleanPrice;
                 
                 listContainer.insertAdjacentHTML('beforeend', `
@@ -257,7 +261,8 @@
         let total = 0;
         userCart.forEach((item, index) => {
             message += `${index + 1}️⃣ *${item.name}* - LKR ${item.price}\n`;
-            let cleanPrice = parseFloat(item.price.replace(/[^\d.]/g, '')) || 0;
+            let numMatch = item.price.match(/\d+/g);
+            let cleanPrice = numMatch ? parseFloat(numMatch.join('')) : 0;
             total += cleanPrice;
         });
         
@@ -297,7 +302,6 @@
         document.getElementById('admin-panel').style.display = 'block';
     }
 
-    // 🚨 මෙන්න සම්පූර්ණ Upload Function එක කිසිම අඩුවක් නැතිව!
     async function handleUpload() {
         const type = document.getElementById('upload-type').value;
         const cat = document.getElementById('category-select').value;

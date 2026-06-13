@@ -45,7 +45,6 @@
         .reels-card { border: 1px solid rgba(212, 175, 55, 0.2); border-radius: 25px; overflow: hidden; height: 550px; background: #000; position: relative; }
         video { width: 100%; height: 85%; object-fit: cover; }
         .reels-footer { padding: 15px; text-align: center; background: #0a0a0a; border-top: 1px solid rgba(212, 175, 55, 0.1); }
-        .reels-footer h4 { margin: 0; font-size: 13px; color: var(--gold); text-transform: uppercase; }
 
         /* Floating Panel Buttons */
         .social-float { position: fixed; bottom: 30px; right: 30px; display: flex; flex-direction: column; gap: 15px; z-index: 9999; }
@@ -229,9 +228,7 @@
             listContainer.innerHTML = '<p style="text-align:center; color:#555; padding:20px 0;">Your shopping tray is empty.</p>';
         } else {
             userCart.forEach((item, index) => {
-                // 🚨 මචං මෙතන මිල ක්ලීන් කරන ලොජික් එක 100%ක් සරල කරලා ශක්තිමත් කළා
-                let numMatch = item.price.match(/\d+/g);
-                let cleanPrice = numMatch ? parseFloat(numMatch.join('')) : 0;
+                let cleanPrice = parseFloat(item.price.replace(/[^\d.]/g, '')) || 0;
                 total += cleanPrice;
                 
                 listContainer.insertAdjacentHTML('beforeend', `
@@ -260,8 +257,7 @@
         let total = 0;
         userCart.forEach((item, index) => {
             message += `${index + 1}️⃣ *${item.name}* - LKR ${item.price}\n`;
-            let numMatch = item.price.match(/\d+/g);
-            let cleanPrice = numMatch ? parseFloat(numMatch.join('')) : 0;
+            let cleanPrice = parseFloat(item.price.replace(/[^\d.]/g, '')) || 0;
             total += cleanPrice;
         });
         
@@ -269,7 +265,6 @@
         message += `💳 *TOTAL AMOUNT:* LKR ${Math.round(total)}\n\n`;
         message += `*Please confirm my order. Thank you! ✨*`;
         
-        // 🚨 මෙන්න නම්බර් එක 94743853510 ට හරියටම හැදුවා
         window.location.href = `whatsapp://send?phone=94743853510&text=${encodeURIComponent(message)}`;
         userCart = []; updateCartUI(); toggleCartModal();
     }
@@ -302,6 +297,7 @@
         document.getElementById('admin-panel').style.display = 'block';
     }
 
+    // 🚨 මෙන්න සම්පූර්ණ Upload Function එක කිසිම අඩුවක් නැතිව!
     async function handleUpload() {
         const type = document.getElementById('upload-type').value;
         const cat = document.getElementById('category-select').value;
@@ -309,6 +305,7 @@
         const btn = document.getElementById('upload-btn');
         const prog = document.getElementById('progress-container');
         const bar = document.getElementById('progress-bar');
+        
         btn.disabled = true; prog.style.display = 'block';
         let finalData = { type, category: cat };
 
@@ -317,10 +314,59 @@
                 const f = document.getElementById('image-file').files[0];
                 if(f) {
                     const fd = new FormData(); fd.append("image", f);
-                    const res = await fetch // ... (ImgBB Logic)
+                    const res = await fetch(`https://api.imgbb.com/1/upload?key=32e67503a329c0a1c1e49e6130e17cd4`, { method: "POST", body: fd });
+                    const j = await res.json(); 
+                    if(j.data && j.data.url) { finalData.url = j.data.url; }
+                } else if(editId) { 
+                    finalData.url = dbContent[editId].url; 
+                } else {
+                    throw new Error("Please select an image file.");
                 }
-            } // ... (Cloudinary Logic)
-        } catch(e) {}
+                finalData.name = document.getElementById('product-name').value;
+                finalData.price = document.getElementById('product-price').value || "0";
+            } else {
+                const f = document.getElementById('video-file').files[0];
+                if(!f) throw new Error("Please select a video file.");
+                const fd = new FormData(); fd.append("file", f); fd.append("upload_preset", "sk_creations_videos");
+                await new Promise((resolve, reject) => {
+                    const xhr = new XMLHttpRequest();
+                    xhr.open('POST', 'https://api.cloudinary.com/v1_1/dwuzm8p86/video/upload');
+                    xhr.upload.onprogress = (e) => { 
+                        if (e.lengthComputable) { 
+                            bar.style.width = Math.round((e.loaded / e.total) * 100) + '%'; 
+                        } 
+                    };
+                    xhr.onload = () => { 
+                        const r = JSON.parse(xhr.responseText); 
+                        if(r.secure_url) { 
+                            finalData.url = r.secure_url; 
+                            finalData.name = document.getElementById('video-title').value || "SK Reel"; 
+                            resolve(); 
+                        } else {
+                            reject(new Error("Video upload failed."));
+                        } 
+                    };
+                    xhr.onerror = () => reject(new Error("Network error during upload.")); 
+                    xhr.send(fd);
+                });
+            }
+
+            if(!finalData.url) throw new Error("File link generation failed.");
+            
+            if(editId) {
+                await database.ref('products').child(editId).update(finalData);
+            } else {
+                await database.ref('products').push(finalData);
+            }
+            
+            Swal.fire('Success!', 'Successfully Published.', 'success');
+            closeAdmin();
+        } catch (e) { 
+            Swal.fire('Error', e.message, 'error'); 
+        } finally { 
+            btn.disabled = false; 
+            resetPanel(); 
+        }
     }
 </script>
 </body>

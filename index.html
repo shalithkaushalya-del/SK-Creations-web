@@ -295,29 +295,28 @@
         const { value: formValues } = await Swal.fire({
             title: 'Complete Your Order',
             html:
-                '<input id="swal-input1" class="swal2-input" placeholder="Your Name" style="color: #111; font-weight: bold;">' +
-                '<input id="swal-input2" class="swal2-input" placeholder="Phone Number (Ex: 077XXXXXXX)" style="color: #111; font-weight: bold;">' +
-                '<input id="swal-input3" class="swal2-input" placeholder="Delivery Address" style="color: #111; font-weight: bold;">',
+                '<input id="swal-input1" class="swal2-input" placeholder="Your Name" style="color: #111; font-weight: bold; width:80%; margin-bottom:10px;">' +
+                '<input id="swal-input2" class="swal2-input" placeholder="Phone Number (Ex: 077XXXXXXX)" style="color: #111; font-weight: bold; width:80%; margin-bottom:10px;">' +
+                '<input id="swal-input3" class="swal2-input" placeholder="Delivery Address" style="color: #111; font-weight: bold; width:80%;">',
             focusConfirm: false,
             background: 'rgba(10,10,10,0.98)',
             color: '#D4AF37',
             confirmButtonText: 'SEND ORDER',
             confirmButtonColor: '#25D366',
             preConfirm: () => {
-                return [
-                    document.getElementById('swal-input1').value,
-                    document.getElementById('swal-input2').value,
-                    document.getElementById('swal-input3').value
-                ]
+                let n = document.getElementById('swal-input1').value;
+                let p = document.getElementById('swal-input2').value;
+                let a = document.getElementById('swal-input3').value;
+                if(!n || !p || !a) {
+                    Swal.showValidationMessage('Please fill all the details!');
+                    return false;
+                }
+                return [n, p, a];
             }
         });
 
         if (formValues) {
             const [custName, phone, address] = formValues;
-            
-            if (!custName || !phone || !address) {
-                return Swal.fire('Error', 'Please fill all the details to place the order.', 'error');
-            }
 
             Swal.fire({
                 title: 'Processing...',
@@ -378,8 +377,9 @@
                         icon: 'success',
                         confirmButtonColor: '#D4AF37'
                     }).then(() => {
-                        // WhatsApp එක ඕපන් කරනවා
-                        window.location.href = `whatsapp://send?phone=94743853510&text=${encodeURIComponent(message)}`;
+                        // මෙතන තමයි වෙනස් කළේ! අලුත් ටැබ් එකක WhatsApp යන්න.
+                        let formattedPhone = "94743853510";
+                        window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`, '_blank');
                         
                         // Cart එක හිස් කරනවා
                         userCart = []; 

@@ -243,7 +243,7 @@
         const item = dbContent[id];
         const existingItemIndex = userCart.findIndex(cartItem => cartItem.id === id);
         
-        // 🔥 මේකෙන් අයිටම් එකේ Category එක බලලා ඉබේම Business එක හොයාගන්නවා 🔥
+        // 🔥 Item එකේ Category එක බලලා අඳුරගන්නවා මේක අයිති මොන Business එකටද කියලා 🔥
         let catStr = item.category ? item.category.toLowerCase() : 'craft';
         let biz = 'SK Crafts';
         if (catStr.includes('fashion')) biz = 'SK Fashion';
@@ -252,6 +252,7 @@
         if (existingItemIndex > -1) {
             userCart[existingItemIndex].qty += 1;
         } else {
+            // 🔥 Business එකත් එක්කම Cart එකට සේව් කරනවා
             userCart.push({ id, name: item.name, price: String(item.price), qty: 1, business: biz });
         }
         
@@ -306,120 +307,7 @@
     function toggleCartModal() { const m = document.getElementById('cart-modal'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
 
     // 🔥 ERP Integration Cart Order Function (Updated) 🔥
-    async function sendCartOrder() {
-        if(userCart.length === 0) return Swal.fire('Tray Empty', 'Add products first!', 'warning');
-        
-        document.getElementById('cart-modal').style.display = 'none';
-        
-        const { value: formValues, dismiss: dismissReason } = await Swal.fire({
-            title: 'Complete Your Order',
-            html:
-                '<input id="swal-input1" class="swal2-input" placeholder="Your Name" style="width:85%; margin-bottom:15px; padding:12px; outline:none;">' +
-                '<input id="swal-input2" class="swal2-input" placeholder="Phone Number (Ex: 077XXXXXXX)" style="width:85%; margin-bottom:15px; padding:12px; outline:none;">' +
-                '<input id="swal-input3" class="swal2-input" placeholder="Delivery Address" style="width:85%; padding:12px; outline:none;">',
-            focusConfirm: false,
-            background: 'rgba(15,20,30,0.99)',
-            color: '#D4AF37',
-            confirmButtonText: 'SEND ORDER',
-            confirmButtonColor: '#25D366',
-            showCancelButton: true,
-            cancelButtonText: 'Cancel',
-            cancelButtonColor: '#e74c3c',
-            showCloseButton: true, 
-            preConfirm: () => {
-                let n = document.getElementById('swal-input1').value;
-                let p = document.getElementById('swal-input2').value;
-                let a = document.getElementById('swal-input3').value;
-                if(!n || !p || !a) {
-                    Swal.showValidationMessage('Please fill all the details!');
-                    return false;
-                }
-                return [n, p, a];
-            }
-        });
-
-        if (!formValues) {
-            document.getElementById('cart-modal').style.display = 'block';
-            return;
-        }
-
-        const [custName, phone, address] = formValues;
-
-        Swal.fire({
-            title: 'Processing...',
-            text: 'Sending your order to SK Creations...',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-        });
-
-        let message = `🛍️ *--- NEW ORDER | SK CREATIONS ---*\n\n`;
-        message += `*Customer:* ${custName}\n`;
-        message += `*Phone:* ${phone}\n`;
-        message += `*Address:* ${address}\n`;
-        message += `━━━━━━━━━━━━━━━━━━\n`;
-        
-        let total = 0;
-        let orderItems = []; 
-        
-        userCart.forEach((item, index) => {
-            let cleanPrice = parsePrice(item.price);
-            let itemTotal = cleanPrice * item.qty;
-            
-            message += `${index + 1}️⃣ *[${item.business.split(' ')[1]}] ${item.name}* (x${item.qty}) - LKR ${itemTotal.toLocaleString('en-US')}\n`;
-            total += itemTotal;
-            
-            // 🔥 ERP එකට යවද්දී හරියටම Business එකයි විස්තර ටිකයි යවනවා
-            orderItems.push({ business: item.business, name: item.name, qty: item.qty, price: cleanPrice });
-        });
-        
-        message += `━━━━━━━━━━━━━━━━━━\n`;
-        message += `💳 *TOTAL AMOUNT:* LKR ${Math.round(total).toLocaleString('en-US')}\n\n`;
-        message += `*Please confirm my order. Thank you! ✨*`;
-
-        const erpUrl = "https://sk-creations-erp.onrender.com/api/web-orders";
-        const orderPayload = {
-            order_no: "WEB-" + Math.floor(1000 + Math.random() * 9000), 
-            date: new Date().toISOString().split('T')[0],
-            customer_name: custName,
-            phone: phone,
-            address: address,
-            total_amount: Math.round(total),
-            items: orderItems 
-        };
-
-        fetch(erpUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(orderPayload)
-        })
-        .then(response => response.json())
-        .then(data => {
-            Swal.close();
-            if(data.success) {
-                Swal.fire({
-                    title: 'Order Placed!',
-                    text: 'Your order has been sent to SK Creations successfully.',
-                    icon: 'success',
-                    confirmButtonColor: '#D4AF37'
-                }).then(() => {
-                    let formattedPhone = "94743853510";
-                    window.open(`https://api.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`, '_blank');
-                    
-                    userCart = []; 
-                    updateCartUI(); 
-                });
-            } else {
-                Swal.fire('Error', 'Failed to connect with SK Creations servers.', 'error');
-                document.getElementById('cart-modal').style.display = 'block'; 
-            }
-        })
-        .catch(error => {
-            Swal.close();
-            console.error("ERP Connection Error:", error);
-            Swal.fire('Error', 'Network error. Please try again.', 'error');
-            document.getElementById('cart-modal').style.display = 'block';
-        });
-    }
+    sendCartOrder()
 
     function viewFullImage(url) { Swal.fire({ imageUrl: url, background: 'rgba(0,0,0,0.95)', showConfirmButton: false, width: 'auto' }); }
     function toggleForm() { const t = document.getElementById('upload-type').value; document.getElementById('photo-fields').style.display = t === 'photo' ? 'block' : 'none'; document.getElementById('video-fields').style.display = t === 'video' ? 'block' : 'none'; }

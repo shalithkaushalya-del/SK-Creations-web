@@ -306,7 +306,7 @@
     function removeFromCart(index) { userCart.splice(index, 1); updateCartUI(); }
     function toggleCartModal() { const m = document.getElementById('cart-modal'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
 
-    // 🔥 ERP Integration Cart Order Function (Payment Method & Slip Upload) 🔥
+    // 🔥 ERP Integration Cart Order Function (Payment Method & Commercial Bank Details) 🔥
     async function sendCartOrder() {
         if(userCart.length === 0) return Swal.fire('Tray Empty', 'Add products first!', 'warning');
         
@@ -323,7 +323,7 @@
                     '<option value="Bank Transfer">Bank Transfer</option>' +
                 '</select>' +
                 '<div id="slip-box" style="display:none; width:85%; margin:15px auto 0; text-align:left; background:rgba(212,175,55,0.1); padding:10px; border-radius:10px; border:1px dashed #D4AF37;">' +
-                    '<p style="margin:0 0 8px 0; font-size:12px; color:#D4AF37;"><b>Bank Details:</b><br>Bank: BOC<br>Acc No: 12345678<br>Name: SK Creations</p>' +
+                    '<p style="margin:0 0 8px 0; font-size:12px; color:#D4AF37;"><b>Bank Details:</b><br>Bank: Commercial Bank Plc<br>Branch: Moratuwa<br>Acc No: 8590035371<br>Name: T.S.K.C.Peiris</p>' +
                     '<label style="font-size:12px; color:#fff;">Upload Payment Slip:</label>' +
                     '<input type="file" id="swal-slip" accept="image/*" style="display:block; margin-top:5px; color:#fff; font-size:12px;">' +
                 '</div>',
@@ -362,7 +362,6 @@
 
         let slipUrl = "";
         
-        // Bank Transfer එකක් නම් ඉස්සෙල්ලම Slip එක Upload කරනවා
         if (formValues.method === 'Bank Transfer' && formValues.file) {
             Swal.fire({ title: 'Uploading Slip...', text: 'Please wait.', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
             try {
@@ -402,7 +401,6 @@
             orderItems.push({ business: item.business, name: item.name, qty: item.qty, price: cleanPrice });
         });
         
-        // ERP එකට අඳුරගන්න Payment විස්තරේ Meta Data එකක් විදියට යවනවා
         orderItems.push({ isMeta: true, method: formValues.method, slip: slipUrl });
 
         message += `━━━━━━━━━━━━━━━━━━\n`;

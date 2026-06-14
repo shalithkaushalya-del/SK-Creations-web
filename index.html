@@ -306,106 +306,123 @@
     function removeFromCart(index) { userCart.splice(index, 1); updateCartUI(); }
     function toggleCartModal() { const m = document.getElementById('cart-modal'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
 
-    // 🔥 ERP Integration Cart Order Function (Updated) 🔥
-    sendCartOrder()
-
-    function viewFullImage(url) { Swal.fire({ imageUrl: url, background: 'rgba(0,0,0,0.95)', showConfirmButton: false, width: 'auto' }); }
-    function toggleForm() { const t = document.getElementById('upload-type').value; document.getElementById('photo-fields').style.display = t === 'photo' ? 'block' : 'none'; document.getElementById('video-fields').style.display = t === 'video' ? 'block' : 'none'; }
-    
-    function toggleAdmin() { 
-        if(prompt("Key:") === "Shan@1994") { 
-            isUserAdmin = true; 
-            document.getElementById('header-admin-btn').style.display = 'block';
-            document.querySelectorAll('.admin-controls').forEach(ctrl => ctrl.style.display = 'flex');
-            Swal.fire('Admin Mode Active!', 'Edit & Delete buttons are now visible.', 'success');
-            renderAll();
-        } 
-    }
-    
-    function openAdminPanelForUpload() { resetPanel(); document.getElementById('admin-panel').style.display = 'block'; }
-    function closeAdmin() { document.getElementById('admin-panel').style.display = 'none'; }
-    function resetPanel() { document.getElementById('edit-id').value = ''; document.getElementById('panel-title').innerText = "ADMIN PORTAL"; document.querySelectorAll('.input-field').forEach(i => { if(i.type !== 'select-one') i.value = ''; }); document.getElementById('progress-container').style.display = 'none'; }
-
-    function startEdit(id) {
-        const item = dbContent[id];
-        document.getElementById('edit-id').value = id;
-        document.getElementById('panel-title').innerText = "EDIT ITEM";
-        document.getElementById('upload-type').value = item.type || "photo";
-        toggleForm();
-        if(item.type !== 'video') { document.getElementById('product-name').value = item.name; document.getElementById('product-price').value = item.price; }
-        document.getElementById('category-select').value = item.category.toLowerCase().replace('sk ', '');
-        document.getElementById('admin-panel').style.display = 'block';
-    }
-
-    async function handleUpload() {
-        const type = document.getElementById('upload-type').value;
-        const cat = document.getElementById('category-select').value;
-        const editId = document.getElementById('edit-id').value;
-        const btn = document.getElementById('upload-btn');
-        const prog = document.getElementById('progress-container');
-        const bar = document.getElementById('progress-bar');
+    // 🔥 ERP Integration Cart Order Function (Mobile Fix) 🔥
+    async function sendCartOrder() {
+        if(userCart.length === 0) return Swal.fire('Tray Empty', 'Add products first!', 'warning');
         
-        btn.disabled = true; prog.style.display = 'block';
-        let finalData = { type, category: cat };
-
-        try {
-            if(type === 'photo') {
-                const f = document.getElementById('image-file').files[0];
-                if(f) {
-                    const fd = new FormData(); fd.append("image", f);
-                    const res = await fetch(`https://api.imgbb.com/1/upload?key=32e67503a329c0a1c1e49e6130e17cd4`, { method: "POST", body: fd });
-                    const j = await res.json(); 
-                    if(j.data && j.data.url) { finalData.url = j.data.url; }
-                } else if(editId) { 
-                    finalData.url = dbContent[editId].url; 
-                } else {
-                    throw new Error("Please select an image file.");
+        document.getElementById('cart-modal').style.display = 'none';
+        
+        const { value: formValues, dismiss: dismissReason } = await Swal.fire({
+            title: 'Complete Your Order',
+            html:
+                '<input id="swal-input1" class="swal2-input" placeholder="Your Name" style="width:85%; margin-bottom:15px; padding:12px; outline:none;">' +
+                '<input id="swal-input2" class="swal2-input" placeholder="Phone Number (Ex: 077XXXXXXX)" style="width:85%; margin-bottom:15px; padding:12px; outline:none;">' +
+                '<input id="swal-input3" class="swal2-input" placeholder="Delivery Address" style="width:85%; padding:12px; outline:none;">',
+            focusConfirm: false,
+            background: 'rgba(15,20,30,0.99)',
+            color: '#D4AF37',
+            confirmButtonText: 'SEND ORDER',
+            confirmButtonColor: '#25D366',
+            showCancelButton: true,
+            cancelButtonText: 'Cancel',
+            cancelButtonColor: '#e74c3c',
+            showCloseButton: true, 
+            preConfirm: () => {
+                let n = document.getElementById('swal-input1').value;
+                let p = document.getElementById('swal-input2').value;
+                let a = document.getElementById('swal-input3').value;
+                if(!n || !p || !a) {
+                    Swal.showValidationMessage('Please fill all the details!');
+                    return false;
                 }
-                finalData.name = document.getElementById('product-name').value;
-                finalData.price = document.getElementById('product-price').value || "0";
-            } else {
-                const f = document.getElementById('video-file').files[0];
-                if(!f) throw new Error("Please select a video file.");
-                const fd = new FormData(); fd.append("file", f); fd.append("upload_preset", "sk_creations_videos");
-                await new Promise((resolve, reject) => {
-                    const xhr = new XMLHttpRequest();
-                    xhr.open('POST', 'https://api.cloudinary.com/v1_1/dwuzm8p86/video/upload');
-                    xhr.upload.onprogress = (e) => { 
-                        if (e.lengthComputable) { 
-                            bar.style.width = Math.round((e.loaded / e.total) * 100) + '%'; 
-                        } 
-                    };
-                    xhr.onload = () => { 
-                        const r = JSON.parse(xhr.responseText); 
-                        if(r.secure_url) { 
-                            finalData.url = r.secure_url; 
-                            finalData.name = document.getElementById('video-title').value || "SK Reel"; 
-                            resolve(); 
-                        } else {
-                            reject(new Error("Video upload failed."));
-                        } 
-                    };
-                    xhr.onerror = () => reject(new Error("Network error during upload.")); 
-                    xhr.send(fd);
-                });
+                return [n, p, a];
             }
+        });
 
-            if(!finalData.url) throw new Error("File link generation failed.");
-            
-            if(editId) {
-                await database.ref('products').child(editId).update(finalData);
-            } else {
-                await database.ref('products').push(finalData);
-            }
-            
-            Swal.fire('Success!', 'Successfully Published.', 'success');
-            closeAdmin();
-        } catch (e) { 
-            Swal.fire('Error', e.message, 'error'); 
-        } finally { 
-            btn.disabled = false; 
-            resetPanel(); 
+        if (!formValues) {
+            document.getElementById('cart-modal').style.display = 'block';
+            return;
         }
+
+        const [custName, phone, address] = formValues;
+
+        Swal.fire({
+            title: 'Processing...',
+            text: 'Sending your order to SK Creations...',
+            allowOutsideClick: false,
+            didOpen: () => { Swal.showLoading(); }
+        });
+
+        let message = `🛍️ *--- NEW ORDER | SK CREATIONS ---*\n\n`;
+        message += `*Customer:* ${custName}\n`;
+        message += `*Phone:* ${phone}\n`;
+        message += `*Address:* ${address}\n`;
+        message += `━━━━━━━━━━━━━━━━━━\n`;
+        
+        let total = 0;
+        let orderItems = []; 
+        
+        userCart.forEach((item, index) => {
+            let cleanPrice = parsePrice(item.price);
+            let itemTotal = cleanPrice * item.qty;
+            
+            message += `${index + 1}️⃣ *[${item.business.split(' ')[1]}] ${item.name}* (x${item.qty}) - LKR ${itemTotal.toLocaleString('en-US')}\n`;
+            total += itemTotal;
+            
+            orderItems.push({ business: item.business, name: item.name, qty: item.qty, price: cleanPrice });
+        });
+        
+        message += `━━━━━━━━━━━━━━━━━━\n`;
+        message += `💳 *TOTAL AMOUNT:* LKR ${Math.round(total).toLocaleString('en-US')}\n\n`;
+        message += `*Please confirm my order. Thank you! ✨*`;
+
+        const erpUrl = "https://sk-creations-erp.onrender.com/api/web-orders";
+        const orderPayload = {
+            order_no: "WEB-" + Math.floor(1000 + Math.random() * 9000), 
+            date: new Date().toISOString().split('T')[0],
+            customer_name: custName,
+            phone: phone,
+            address: address,
+            total_amount: Math.round(total),
+            items: orderItems 
+        };
+
+        fetch(erpUrl, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(orderPayload)
+        })
+        .then(response => response.json())
+        .then(data => {
+            Swal.close();
+            if(data.success) {
+                Swal.fire({
+                    title: 'Order Placed!',
+                    text: 'Your order has been sent to SK Creations successfully.',
+                    icon: 'success',
+                    confirmButtonColor: '#D4AF37'
+                }).then(() => {
+                    
+                    // Cart එක හිස් කරනවා WhatsApp යන්න කලින්
+                    userCart = []; 
+                    updateCartUI(); 
+
+                    // 🔥 MOBILE FIX: අලුත් ටැබ් ඕපන් කරන්නේ නැතුව කෙලින්ම ඇප් එකට යවනවා! 🔥
+                    let formattedPhone = "94743853510";
+                    window.location.href = `https://wa.me/${formattedPhone}?text=${encodeURIComponent(message)}`;
+                    
+                });
+            } else {
+                Swal.fire('Error', 'Failed to connect with SK Creations servers.', 'error');
+                document.getElementById('cart-modal').style.display = 'block'; 
+            }
+        })
+        .catch(error => {
+            Swal.close();
+            console.error("ERP Connection Error:", error);
+            Swal.fire('Error', 'Network error. Please try again.', 'error');
+            document.getElementById('cart-modal').style.display = 'block';
+        });
     }
 </script>
 </body>

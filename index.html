@@ -306,7 +306,7 @@
     function removeFromCart(index) { userCart.splice(index, 1); updateCartUI(); }
     function toggleCartModal() { const m = document.getElementById('cart-modal'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
 
-    // 🔥 ERP Integration Cart Order Function (ULTIMATE MOBILE FIX) 🔥
+    // 🔥 ERP Integration Cart Order Function (100% BULLETPROOF MOBILE FIX) 🔥
     async function sendCartOrder() {
         if(userCart.length === 0) return Swal.fire('Tray Empty', 'Add products first!', 'warning');
         
@@ -396,32 +396,34 @@
         .then(data => {
             Swal.close();
             if(data.success) {
+                
+                let formattedPhone = "94743853510";
+                let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+                let waUrl = isMobile 
+                    ? `whatsapp://send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`
+                    : `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
+
+                // 🔥 100% ක් වැඩ කරන විදිය: කස්ටමර්ටම Button එක ඔබන්න දෙනවා 🔥
                 Swal.fire({
-                    title: 'Order Placed!',
-                    text: 'Your order has been sent to SK Creations successfully.',
+                    title: 'Order Sent Successfully!',
+                    html: '<p style="color: #fef0c3; font-size: 14px;">Your order has been sent to our system.<br><br><b>Please click below to send the details via WhatsApp to confirm the order.</b></p>',
                     icon: 'success',
-                    confirmButtonColor: '#D4AF37'
-                }).then(() => {
-                    
-                    // 🔥 MOBILE FIX: ෆෝන් එකක්ද PC එකක්ද කියලා අඳුරගෙන ලින්ක් එක හදනවා 🔥
-                    let formattedPhone = "94743853510";
-                    let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                    
-                    let waUrl = isMobile 
-                        ? `whatsapp://send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`
-                        : `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
-                    
-                    // Button එකක් ඉබේම Click කරනවා වගේ හදලා යවනවා (Block වෙන්නේ නෑ)
-                    let a = document.createElement('a');
-                    a.href = waUrl;
-                    if(!isMobile) a.target = '_blank';
-                    document.body.appendChild(a);
-                    a.click();
-                    document.body.removeChild(a);
-                    
-                    userCart = []; 
-                    updateCartUI(); 
+                    background: 'rgba(15,20,30,0.98)',
+                    color: '#D4AF37',
+                    confirmButtonText: '<i class="fab fa-whatsapp"></i> Send to WhatsApp',
+                    confirmButtonColor: '#25D366',
+                    allowOutsideClick: false
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        // User click කළාම කෙලින්ම යනවා! Block වෙන්නේ නෑ!
+                        window.location.href = waUrl;
+                    }
                 });
+                
+                // Cart එක හිස් කරනවා
+                userCart = []; 
+                updateCartUI(); 
+
             } else {
                 Swal.fire('Error', 'Failed to connect with SK Creations servers.', 'error');
                 document.getElementById('cart-modal').style.display = 'block'; 

@@ -307,7 +307,6 @@
     function toggleCartModal() { const m = document.getElementById('cart-modal'); m.style.display = m.style.display === 'block' ? 'none' : 'block'; }
 
     // 🔥 ERP Integration Cart Order Function (Payment Method & Commercial Bank Details) 🔥
-    // 🔥 CLEAN & PERFECTED: sendCartOrder Function 🔥
     async function sendCartOrder() {
         if(userCart.length === 0) return Swal.fire('Tray Empty', 'Add products first!', 'warning');
         
@@ -365,7 +364,7 @@
             if(j.data) slipUrl = j.data.url;
         }
 
-        Swal.fire({ title: 'Sending Order...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        Swal.fire({ title: 'Sending...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
         let message = `🛍️ *NEW ORDER*\n*Customer:* ${formValues.name}\n*Phone:* ${formValues.phone}\n*Method:* ${formValues.method}\n━━━━━━━━━━\n`;
         let total = 0; let orderItems = [];
@@ -402,113 +401,8 @@
                 window.location.href = waUrl;
             });
             userCart = []; updateCartUI();
-        });
-    }
-
-        if (!formValues) {
-            document.getElementById('cart-modal').style.display = 'block';
-            return;
-        }
-
-        let slipUrl = "";
-        
-        if (formValues.method === 'Bank Transfer' && formValues.file) {
-            Swal.fire({ title: 'Uploading Slip...', text: 'Please wait.', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
-            try {
-                let fd = new FormData(); 
-                fd.append("image", formValues.file);
-                let res = await fetch(`https://api.imgbb.com/1/upload?key=32e67503a329c0a1c1e49e6130e17cd4`, { method: "POST", body: fd });
-                let j = await res.json(); 
-                if(j.data && j.data.url) { slipUrl = j.data.url; }
-            } catch(e) {
-                Swal.fire('Error', 'Slip upload failed. Please try again.', 'error');
-                return;
-            }
-        }
-
-        Swal.fire({
-            title: 'Processing Order...',
-            text: 'Sending your order to SK Creations...',
-            allowOutsideClick: false,
-            didOpen: () => { Swal.showLoading(); }
-        });
-
-        let message = `🛍️ *--- NEW ORDER | SK CREATIONS ---*\n\n`;
-        message += `*Customer:* ${formValues.name}\n`;
-        message += `*Phone:* ${formValues.phone}\n`;
-        message += `*Address:* ${formValues.address}\n`;
-        message += `*Payment Method:* ${formValues.method}\n`;
-        message += `━━━━━━━━━━━━━━━━━━\n`;
-        
-        let total = 0;
-        let orderItems = []; 
-        
-        userCart.forEach((item, index) => {
-            let cleanPrice = parsePrice(item.price);
-            let itemTotal = cleanPrice * item.qty;
-            message += `${index + 1}️⃣ *[${item.business.split(' ')[1]}] ${item.name}* (x${item.qty}) - LKR ${itemTotal.toLocaleString('en-US')}\n`;
-            total += itemTotal;
-            orderItems.push({ business: item.business, name: item.name, qty: item.qty, price: cleanPrice });
-        });
-        
-        orderItems.push({ isMeta: true, method: formValues.method, slip: slipUrl });
-
-        message += `━━━━━━━━━━━━━━━━━━\n`;
-        message += `💳 *TOTAL AMOUNT:* LKR ${Math.round(total).toLocaleString('en-US')}\n\n`;
-        if(slipUrl) message += `📎 *Slip Uploaded: Yes*\n\n`;
-        message += `*Please confirm my order. Thank you! ✨*`;
-
-        const erpUrl = "https://sk-creations-erp.onrender.com/api/web-orders";
-        const orderPayload = {
-            order_no: "WEB-" + Math.floor(1000 + Math.random() * 9000), 
-            date: new Date().toISOString().split('T')[0],
-            customer_name: formValues.name,
-            phone: formValues.phone,
-            address: formValues.address,
-            total_amount: Math.round(total),
-            items: orderItems 
-        };
-
-        fetch(erpUrl, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify(orderPayload)
-        })
-        .then(response => response.json())
-        .then(data => {
-            Swal.close();
-            if(data.success) {
-                let formattedPhone = "94743853510";
-                let isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
-                let waUrl = isMobile 
-                    ? `whatsapp://send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`
-                    : `https://web.whatsapp.com/send?phone=${formattedPhone}&text=${encodeURIComponent(message)}`;
-
-                Swal.fire({
-                    title: 'Order Sent Successfully!',
-                    html: '<p style="color: #fef0c3; font-size: 14px;">Your order has been sent to our system.<br><br><b>Please click below to notify us via WhatsApp.</b></p>',
-                    icon: 'success',
-                    background: 'rgba(15,20,30,0.98)',
-                    color: '#D4AF37',
-                    confirmButtonText: '<i class="fab fa-whatsapp"></i> Notify via WhatsApp',
-                    confirmButtonColor: '#25D366',
-                    allowOutsideClick: false
-                }).then((result) => {
-                    if (result.isConfirmed) { window.location.href = waUrl; }
-                });
-                
-                userCart = []; 
-                updateCartUI(); 
-
-            } else {
-                Swal.fire('Error', 'Failed to connect with SK Creations servers.', 'error');
-                document.getElementById('cart-modal').style.display = 'block'; 
-            }
-        })
-        .catch(error => {
-            Swal.close();
-            console.error("ERP Connection Error:", error);
-            Swal.fire('Error', 'Network error. Please try again.', 'error');
+        }).catch(err => {
+            Swal.fire('Error', 'Something went wrong!', 'error');
             document.getElementById('cart-modal').style.display = 'block';
         });
     }
